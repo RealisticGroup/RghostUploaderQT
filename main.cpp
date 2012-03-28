@@ -5,7 +5,6 @@
 #include "listener.h"
 #include <QString>
 #include "upload_list.h"
-Q_IMPORT_PLUGIN(qgif)
 
 int main(int argc, char *argv[])
 {

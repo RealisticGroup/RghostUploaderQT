@@ -81,7 +81,7 @@ void Window::createActions() {
 }
 
 void Window::createTrayIcon() {
-    QIcon icon = QIcon(":/images/ghost.gif");
+    QIcon icon = QIcon(":/images/ghost.png");
     trayIconMenu = new QMenu(this);
     trayIconMenu->addAction(minimizeAction);
     trayIconMenu->addAction(restoreAction);

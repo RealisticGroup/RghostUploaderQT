@@ -13,9 +13,6 @@ Payload::Payload(QFile * file, QScriptValue & script_value) : upload_file(file),
                              + endline + "Content-Transfer-Encoding: binary" + endline + endline;
 
     addFormParam("authenticity_token", script_value.property("authenticity_token").toString().toLatin1());
-    if (settings.value("api_key_enabled").toBool() && settings.value("api_key").toString().size() > 10)
-        addFormParam("api_key", settings.value("api_key").toString().toLocal8Bit());
-
     payload_start.append(file_str.toUtf8());
     open(QIODevice::ReadOnly);
 }

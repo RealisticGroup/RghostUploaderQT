@@ -114,14 +114,6 @@ void TabWidget::prepareUpload() {
         UploadList::current_uploading = NULL;
         return;
     }
-    if ( upload_file->size() > 200*1024*1024) {
-        UploadList::current_uploading->descr(tr("Upload size limit (200 MB)"));
-        UploadList::current_uploading->state(tr("error"));
-        UploadList::current_uploading = NULL;
-        upload_file->close();
-        upload_file = NULL;
-        return;
-    }
 
     m_ui->progressBar->setValue(0);
     UploadList::current_uploading->state(tr("uploading"));
@@ -132,6 +124,9 @@ void TabWidget::prepareUpload() {
     request.setRawHeader("Host", "rghost.net");
     request.setRawHeader("Accept-Language","en");
     request.setRawHeader("User-Agent", USER_AGENT);
+    if (settings.value("api_key_enabled").toBool() && settings.value("api_key").toString().size() > 10)
+        request.setRawHeader("X-API-Key", settings.value("api_key").toString().toUtf8());
+
     reply = network_manager.get(request);
     connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(uploadError(QNetworkReply::NetworkError)));
     connect(reply, SIGNAL(finished()), this, SLOT(jsonRequestFinished()));
@@ -140,16 +135,24 @@ void TabWidget::prepareUpload() {
 
 
 void TabWidget::startUpload() {
-
+    QString uri;
     m_ui->label_progress->setText(tr("Uploading..."));
 
     QNetworkRequest request;
-    request.setUrl(QUrl(QString("http://") + script_value.property("upload_host").toString() + QString("/files")));
-    request.setRawHeader("Host", script_value.property("upload_host").toString().toLatin1());
+    if (script_value.property("premium").toBoolean() == true)
+        uri = QString("/premium/files");
+    else
+        uri = QString("/files");
+
+    request.setUrl(QUrl(QString("http://") + script_value.property("upload_host").toString() + uri));
+    request.setRawHeader("Host", script_value.property("upload_host").toString().toUtf8());
     request.setRawHeader("Accept-Language","en");
     request.setRawHeader("User-Agent", USER_AGENT);
     request.setRawHeader("Cookie", session.toUtf8());
     request.setRawHeader("Content-type", QString("multipart/form-data; boundary=" + Payload::boundary).toUtf8());
+    if (settings.value("api_key_enabled").toBool() && settings.value("api_key").toString().size() > 10)
+        request.setRawHeader("X-API-Key", settings.value("api_key").toString().toUtf8());
+
     request.setAttribute(QNetworkRequest::DoNotBufferUploadDataAttribute, true);
     payload = new Payload(upload_file, script_value);
 
@@ -225,10 +228,23 @@ void TabWidget::uploadRequestFinished() {
 }
 
 void TabWidget::jsonRequestFinished() {
+    int upload_limit;
+
     if (reply->error() == QNetworkReply::NoError) {
         script_value = script_engine.evaluate("(" + reply->readAll() + ")");
         session = reply->rawHeader("Set-Cookie");
         reply->deleteLater();
+        upload_limit = script_value.property("upload_limit").toInteger();
+
+        if ( upload_file->size() > upload_limit*1024*1024) {
+            UploadList::current_uploading->descr(tr("Upload size limit (%1 MB)").arg(upload_limit));
+            UploadList::current_uploading->state(tr("error"));
+            UploadList::current_uploading = NULL;
+            upload_file->close();
+            upload_file = NULL;
+            updateTableView();
+            return;
+        }
         startUpload();
     }
     else

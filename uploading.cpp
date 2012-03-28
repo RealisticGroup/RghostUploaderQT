@@ -25,8 +25,8 @@ void Uploading::path(const QString & path){
     this->replace(0, path);
 }
 void Uploading::descr(const QString & descr){
-    this->replace(1, descr);;
+    this->replace(1, descr);
 }
 void Uploading::state(const QString & state){
-    this->replace(2, state);;
+    this->replace(2, state);
 }

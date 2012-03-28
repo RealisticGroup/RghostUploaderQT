@@ -16,7 +16,7 @@
 #include <QtScript>
 #include <QScriptEngine>
 
-#define USER_AGENT "rgup 1.1"
+#define USER_AGENT "rgup 1.2"
 
 namespace Ui {
     class TabWidget;

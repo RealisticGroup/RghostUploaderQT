@@ -18,6 +18,5 @@ CONFIG += qt \
     warn_on \
     static
 QMAKE_LFLAGS += -static-libgcc
-QTPLUGIN += qgif
 FORMS += tabwidget.ui
 RC_FILE = rghost_uploader.rc

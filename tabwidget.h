@@ -15,6 +15,7 @@
 #include <QMutex>
 #include <QtScript>
 #include <QScriptEngine>
+#include <QClipboard>
 
 #define USER_AGENT "rgup 1.2"
 
@@ -58,6 +59,7 @@ public slots:
     void uploadDialog();
     void updateTableView();
     void clearTableView();
+    void copyTableView();
     void newUpload();
     void prepareUpload();
     void startUpload();

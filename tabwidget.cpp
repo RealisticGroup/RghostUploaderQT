@@ -15,6 +15,7 @@ TabWidget::TabWidget(QWidget *parent) :
     m_ui->setupUi(this);
     connect(m_ui->pushButton_upload, SIGNAL(clicked()), this, SLOT(uploadDialog()));
     connect(m_ui->pushButton_clear, SIGNAL(clicked()), this, SLOT(clearTableView()));
+    connect(m_ui->pushButton_copy, SIGNAL(clicked()), this, SLOT(copyTableView()));
     uploadings_model = new QStandardItemModel(0,2);
     m_ui->tableView->setModel(uploadings_model);
     connect(m_ui->pushButton_control, SIGNAL(clicked()), this, SLOT(controlUpload()));
@@ -73,10 +74,13 @@ void TabWidget::updateTableView() {
         items.append(filestatus);
         uploadings_model->insertRow(row, items);
     }
-    if (UploadList::size() > 0)
+    if (UploadList::size() > 0) {
         m_ui->pushButton_clear->setEnabled(true);
-    else
+        m_ui->pushButton_copy->setEnabled(true);
+    } else {
         m_ui->pushButton_clear->setEnabled(false);
+        m_ui->pushButton_copy->setEnabled(false);
+    }
     if (UploadList::current_uploading == NULL)
         m_ui->pushButton_control->setEnabled(false);
     else
@@ -86,6 +90,18 @@ void TabWidget::updateTableView() {
 void TabWidget::clearTableView() {
     UploadList::clear();
     updateTableView();
+}
+
+void TabWidget::copyTableView() {
+     QClipboard *clipboard = QApplication::clipboard();
+     QString clipboardText;
+     for (int row = 0; row < UploadList::size(); ++row) {
+         clipboardText.append(UploadList::at(row)->descr());
+         clipboardText.append("\n");
+     }
+     if (!clipboardText.isEmpty()) {
+         clipboard->setText(clipboardText);
+     }
 }
 
 void TabWidget::newUpload(){

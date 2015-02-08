@@ -1,16 +1,18 @@
+!define Packhdr upx
+!include Packhdr.nsh
 
 ;--------------------------------
 ;Include Modern UI
 
   !include "MUI2.nsh"
+  !define MUI_ICON "images/ghost.ico"
+  Name "RGhost uploader"
+  OutFile "RGhostUploader.exe"
 
-  Name "RGHost uploader"
-  OutFile "RGHostUploader.exe"
-
-  InstallDir "$PROGRAMFILES\RGHost"
+  InstallDir "$PROGRAMFILES\RGhost"
 
   ;Get installation folder from registry if available
-  InstallDirRegKey HKCU "Software\RGHost" "InstallDir"
+  InstallDirRegKey HKCU "Software\RGhost" "InstallDir"
 
   ;Request application privileges for Windows Vista
   RequestExecutionLevel admin
@@ -34,7 +36,7 @@
 
   ;Start Menu Folder Page Configuration
   !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU"
-  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\RGHost"
+  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\RGhost"
   !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
 
   !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
@@ -58,10 +60,10 @@
 ;--------------------------------
 ;Installer Sections
 
-Section "RGHost Uploader" SecUploader
+Section "RGhost Uploader" SecUploader
 
   SetOutPath "$INSTDIR"
-  WriteRegStr HKCU "Software\RGHost" "InstallDir" $INSTDIR
+  WriteRegStr HKCU "Software\RhHost" "InstallDir" $INSTDIR
 
   File "Release\rghost_uploader.exe"
 
@@ -79,8 +81,8 @@ SectionEnd
 
 Section "Shell Extension" SecShellEx
 
-  WriteRegStr HKCR "*\shell\RGHost" "" "Upload to RGHost"
-  WriteRegStr HKCR "*\shell\RGHost\command" "" '$INSTDIR\rghost_uploader.exe "%1"'
+  WriteRegStr HKCR "*\shell\RGhost" "" "Upload to RGhost"
+  WriteRegStr HKCR "*\shell\RGhost\command" "" '$INSTDIR\rghost_uploader.exe "%1"'
 
 SectionEnd
 
@@ -112,9 +114,9 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\$StartMenuFolder\Uploader.lnk"
   RMDir "$SMPROGRAMS\$StartMenuFolder"
 
-  DeleteRegKey HKCU "Software\RGHost"
-  DeleteRegKey HKCR "*\shell\RGHost"
-  DeleteRegValue HKLM "Software\Microsoft\Windows\CurrentVersion\Run" "RGHost uploader"
+  DeleteRegKey HKCU "Software\RGhost"
+  DeleteRegKey HKCR "*\shell\RGhost"
+  DeleteRegValue HKLM "Software\Microsoft\Windows\CurrentVersion\Run" "RGhost uploader"
 
 SectionEnd
 

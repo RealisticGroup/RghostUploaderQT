@@ -14,10 +14,15 @@ SOURCES = window.cpp \
 RESOURCES = systray.qrc
 QT += network \
     widgets \
-    script
+    script \
+    svg
 CONFIG += qt \
     warn_on \
     static
 QMAKE_LFLAGS += -static-libgcc
 FORMS += tabwidget.ui
 RC_FILE = rghost_uploader.rc
+
+CONFIG(release, debug|release) {
+  win32 : QMAKE_POST_LINK = upx --best release/$(TARGET)
+}

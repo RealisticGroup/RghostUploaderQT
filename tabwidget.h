@@ -1,7 +1,7 @@
 #ifndef TABWIDGET_H
 #define TABWIDGET_H
 
-#include <QtGui/QTabWidget>
+#include <QTabWidget>
 #include <QFileDialog>
 #include <QStandardItemModel>
 #include <QtNetwork/QNetworkAccessManager>
@@ -13,8 +13,8 @@
 #include "math.h"
 #include "payload.h"
 #include <QMutex>
-#include <QtScript>
-#include <QScriptEngine>
+#include <QtScript/QtScript>
+#include <QtScript/QScriptEngine>
 #include <QClipboard>
 
 #define USER_AGENT "rgup 1.2"

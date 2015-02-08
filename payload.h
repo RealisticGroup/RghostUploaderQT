@@ -6,8 +6,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QSettings>
-#include <QtScript>
-#include <QScriptEngine>
+#include <QtScript/QScriptValue>
 
 class Payload : public QIODevice
 {

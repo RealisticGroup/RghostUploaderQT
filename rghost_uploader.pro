@@ -13,6 +13,7 @@ SOURCES = window.cpp \
     payload.cpp
 RESOURCES = systray.qrc
 QT += network \
+    widgets \
     script
 CONFIG += qt \
     warn_on \

@@ -49,7 +49,8 @@ void TabWidget::uploadDialog() {
     QFileDialog dialog(this, tr("Select files to upload"));
     dialog.setFileMode(QFileDialog::ExistingFiles);
     dialog.setDirectory(settings.value("upload_source",
-                                       QDesktopServices::storageLocation(QDesktopServices::HomeLocation)).toString());
+                                       QStandardPaths::standardLocations(QStandardPaths::HomeLocation)).toString());
+
     if (dialog.exec()) {
         for (int i = 0; i < dialog.selectedFiles().size(); ++i)
             UploadList::add(dialog.selectedFiles().at(i));

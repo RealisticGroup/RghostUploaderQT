@@ -3,6 +3,9 @@
 
 #include <QSystemTrayIcon>
 #include <QDialog>
+#include <QAction>
+#include <QMenu>
+#include <QVBoxLayout>
 #include "tabwidget.h"
 
 QT_BEGIN_NAMESPACE

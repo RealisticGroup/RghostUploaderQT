@@ -190,8 +190,8 @@ void TabWidget::updateDataSendProgress(qint64 bytesSend, qint64 totalBytes) {
         return;
     float average_speed = bytesSend / interval;
     int eta_seconds = round((totalBytes - bytesSend) / average_speed);
-    m_ui->progressBar->setMaximum(totalBytes);
-    m_ui->progressBar->setValue(bytesSend);
+    m_ui->progressBar->setMaximum(round(totalBytes / 1024));
+    m_ui->progressBar->setValue(round(bytesSend/1024));
 
     QString size_str, speed_str, time_str;
 
@@ -274,7 +274,7 @@ void TabWidget::uploadError(QNetworkReply::NetworkError status) {
     updateTableView();
 }
 
-void TabWidget::recordSpeed(int new_bytes_sent) {
+void TabWidget::recordSpeed(qint64 new_bytes_sent) {
     QDateTime current_time = QDateTime::currentDateTime();
     if(last_date != start_date) {
         int interval = last_date.secsTo(current_time);

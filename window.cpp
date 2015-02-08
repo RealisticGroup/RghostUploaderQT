@@ -22,7 +22,7 @@ Window::Window() {
     mainLayout->addWidget(new TabWidget);
     setLayout(mainLayout);
 
-    setWindowTitle(tr("RGHost uploader"));
+    setWindowTitle(tr("RGhost uploader"));
     setAcceptDrops(true);
 }
 

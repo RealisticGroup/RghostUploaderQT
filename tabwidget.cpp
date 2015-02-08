@@ -228,7 +228,7 @@ void TabWidget::uploadRequestFinished() {
 }
 
 void TabWidget::jsonRequestFinished() {
-    int upload_limit;
+    qint64 upload_limit;
 
     if (reply->error() == QNetworkReply::NoError) {
         script_value = script_engine.evaluate("(" + reply->readAll() + ")");

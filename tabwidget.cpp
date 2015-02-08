@@ -251,7 +251,7 @@ void TabWidget::jsonRequestFinished() {
         reply->deleteLater();
 }
 void TabWidget::uploadError(QNetworkReply::NetworkError status) {
-    UploadList::current_uploading->descr(tr("Upload failed: %1.").arg(reply->errorString()));
+    UploadList::current_uploading->descr(tr("Upload failed: %1 (%2).").arg(reply->errorString()).arg(status));
     UploadList::current_uploading->state(tr("error"));
     UploadList::current_uploading = NULL;
     updateTableView();

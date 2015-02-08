@@ -46,10 +46,10 @@ public:
     //Progressbar stuff
     QDateTime start_date, last_date;
     float maximum_speed, average_speed;
-    int bytes_sent;
+    qint64 bytes_sent;
     QStringList suffixes;
 
-    void recordSpeed(int new_bytes_sent);
+    void recordSpeed(qint64 new_bytes_sent);
     void loadOptions();
 
 protected:

@@ -17,7 +17,9 @@ TabWidget::TabWidget(QWidget *parent) :
     connect(m_ui->pushButton_clear, SIGNAL(clicked()), this, SLOT(clearTableView()));
     connect(m_ui->pushButton_copy, SIGNAL(clicked()), this, SLOT(copyTableView()));
     uploadings_model = new QStandardItemModel(0,2);
+
     m_ui->tableView->setModel(uploadings_model);
+
     connect(m_ui->pushButton_control, SIGNAL(clicked()), this, SLOT(controlUpload()));
     suffixes << "B" << "KB" << "MB" << "GB" << "TB" << "PB";
     loadOptions();
@@ -63,8 +65,12 @@ void TabWidget::updateTableView() {
     QList<QStandardItem *> items;
     QStandardItem *filepath, *filestatus;
     QFileInfo *fileinfo;
+    QStringList horzHeaders;
+    horzHeaders << "Name" << "URL";
 
     uploadings_model->clear();
+    uploadings_model->setHorizontalHeaderLabels(horzHeaders);
+
     for (int row = 0; row < UploadList::size(); ++row) {
         items.clear();
         fileinfo = new QFileInfo(UploadList::at(row)->path());

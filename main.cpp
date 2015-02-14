@@ -9,10 +9,12 @@
 int main(int argc, char *argv[])
 {
     //AllocConsole();
+    QApplication app(argc, argv);
     QCoreApplication::setOrganizationName("rghost");
     QCoreApplication::setOrganizationDomain("rghost.net");
     QCoreApplication::setApplicationName("uploader");
-    QApplication app(argc, argv);
+    QCoreApplication::setApplicationVersion("1.3");
+
     for(int i = 1; i < app.arguments().size(); ++i)
         UploadList::add(new Uploading(app.arguments().at(i)));
 

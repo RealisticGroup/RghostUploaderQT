@@ -13,6 +13,7 @@ class Payload : public QIODevice
 {
 public:
     Payload(QFile * file, QScriptValue & script_value);
+    ~Payload();
     qint64 size() const;
     qint64 pos() const;
     qint64 position;

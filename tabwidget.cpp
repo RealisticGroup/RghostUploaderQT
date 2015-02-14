@@ -187,22 +187,24 @@ void TabWidget::startUpload() {
     //_cprintf("uploading...\n");
 }
 
-void TabWidget::updateDataSendProgress(qint64 bytesSend, qint64 totalBytes) {
+void TabWidget::updateDataSendProgress(qint64 bytesSent, qint64 totalBytes) {
     //_cprintf("updateDataSendProgress %d - %d\n", bytesSend, totalBytes);
-    recordSpeed(bytesSend);
-    int interval = start_date.secsTo(last_date);
+    recordSpeed(bytesSent);
+    qint64 interval = start_date.secsTo(last_date);
     if (interval == 0)
         return;
-    float average_speed = bytesSend / interval;
-    int eta_seconds = round((totalBytes - bytesSend) / average_speed);
-    m_ui->progressBar->setMaximum(round(totalBytes / 1024));
-    m_ui->progressBar->setValue(round(bytesSend/1024));
+    float average_speed = float(bytesSent) / float(interval);
+    qint64 eta_seconds = round(float(totalBytes - bytesSent) / average_speed);
+
+    m_ui->progressBar->setMaximum(1000);
+    m_ui->progressBar->setValue(round(1000 * (float(bytesSent) / float(totalBytes))));
 
     QString size_str, speed_str, time_str;
 
-    float size = bytesSend;
-    float max_size = totalBytes;
+    qint64 size = bytesSent, max_size = totalBytes;
+
     int i = 0;
+
     for(; i < suffixes.size(); ++i) {
         if(max_size < 2048)
             break;
@@ -235,10 +237,8 @@ void TabWidget::uploadRequestFinished() {
         m_ui->progressBar->setValue(m_ui->progressBar->maximum());
     }
     UploadList::current_uploading = NULL;
-    upload_file->close();
-    delete upload_file;
-    delete payload;
     upload_file = NULL;
+    payload->deleteLater();
     payload = NULL;
     updateTableView();
     if (reply->error() == QNetworkReply::NoError) {
@@ -284,7 +284,7 @@ void TabWidget::recordSpeed(qint64 new_bytes_sent) {
     if(last_date != start_date) {
         int interval = last_date.secsTo(current_time);
         if(interval > 0) {
-            float avg = round((new_bytes_sent - bytes_sent)/interval);
+            float avg = round(float(new_bytes_sent - bytes_sent)/interval);
             if(maximum_speed < avg)
                 maximum_speed = avg;
         }

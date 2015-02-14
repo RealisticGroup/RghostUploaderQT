@@ -30,6 +30,8 @@ bool Payload::open(QIODevice::OpenMode mode){
     return true;
 }
 void Payload::close(){
+    upload_file->close();
+    QIODevice::close();
     return;
 }
 
@@ -68,4 +70,9 @@ qint64 Payload::writeData ( const char * data, qint64 len ) {
 void Payload::addFormParam(const char * name, const char * value) {
     QString param = start_delim + cont_disp_str + "name=" + "\"" + name + "\"" + endline + endline + value + endline;
     payload_start.append(param);
+}
+
+Payload::~Payload() {
+    close();
+    delete upload_file;
 }

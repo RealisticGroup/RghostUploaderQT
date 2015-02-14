@@ -16,7 +16,8 @@ QT += network \
     script
 CONFIG += qt \
     warn_on \
-    static
+    static \
+    debug_and_release
 QMAKE_LFLAGS += -static-libgcc
 FORMS += tabwidget.ui
 RC_FILE = rghost_uploader.rc

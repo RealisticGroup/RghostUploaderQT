@@ -17,7 +17,7 @@
 #include <QtScript/QScriptEngine>
 #include <QClipboard>
 
-#define USER_AGENT "rgup 1.2"
+#define USER_AGENT "rgup 1.3"
 
 namespace Ui {
     class TabWidget;

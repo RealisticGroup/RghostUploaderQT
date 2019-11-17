@@ -10,14 +10,17 @@
 #include <QFile>
 #include <QDateTime>
 #include <QSettings>
+#include <QWidget>
 #include "math.h"
 #include "payload.h"
 #include <QMutex>
-#include <QtScript/QtScript>
-#include <QtScript/QScriptEngine>
 #include <QClipboard>
+#include <QJsonDocument>
 
-#define USER_AGENT "rgup 1.3"
+#define xstr(s) str(s)
+#define str(s) #s
+#define VERSION xstr(GIT_VERSION)
+#define USER_AGENT "rgup " xstr(GIT_VERSION)
 
 namespace Ui {
     class TabWidget;
@@ -36,8 +39,7 @@ public:
     //HTTP stuff
     QNetworkAccessManager network_manager;
     QNetworkReply * reply;
-    QScriptEngine script_engine;
-    QScriptValue  script_value;
+    QJsonDocument  json_document;
 
     QFile * upload_file;
     Payload * payload;
@@ -49,6 +51,8 @@ public:
     qint64 bytes_sent;
     QStringList suffixes;
 
+    // Helpers
+    bool isApiKeyEntered();
     void recordSpeed(qint64 new_bytes_sent);
     void loadOptions();
 
@@ -64,14 +68,13 @@ public slots:
     void prepareUpload();
     void startUpload();
     void controlUpload();
-    void toggleApiKey(int state);
     void updateApiKey();
     void toggleSystemTray(int state);
 
     void uploadRequestFinished();
     void jsonRequestFinished();
     void updateDataSendProgress(qint64 bytesSend, qint64 totalBytes);
-    void uploadError(QNetworkReply::NetworkError state);
+    void uploadError();
 
 private:
     Ui::TabWidget *m_ui;

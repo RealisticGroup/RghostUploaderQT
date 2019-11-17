@@ -1,5 +1,4 @@
 #include <QtWidgets>
-
 #include "window.h"
 #include "tabwidget.h"
 #include "upload_list.h"
@@ -19,10 +18,13 @@ Window::Window() {
             this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(new TabWidget);
+    tabWidget = new TabWidget;
+    mainLayout->addWidget(tabWidget);
     setLayout(mainLayout);
 
-    setWindowTitle(tr("RGhost uploader"));
+    setWindowTitle(tr("RGhost Uploader"));
+    // TODO: make configurable
+    // setWindowFlags(Qt::WindowStaysOnTopHint);
     setAcceptDrops(true);
 }
 
@@ -81,7 +83,7 @@ void Window::createActions() {
 }
 
 void Window::createTrayIcon() {
-    QIcon icon = QIcon(":/images/ghost.svg");
+    QIcon icon = QIcon(":/images/ghost.png");
     trayIconMenu = new QMenu(this);
     trayIconMenu->addAction(minimizeAction);
     trayIconMenu->addAction(restoreAction);
@@ -94,3 +96,21 @@ void Window::createTrayIcon() {
     trayIcon->setIcon(icon);
     setWindowIcon(icon);
 }
+
+
+void Window::receivedMessage(int instanceId, QByteArray message) {
+    instanceStarted();
+    QStringList list = QString(message).split(QRegExp("\n"), QString::SkipEmptyParts);
+    for ( const auto& path : list  )
+        UploadList::add(new Uploading(path));
+    UploadingsReceived();
+}
+
+void Window::instanceStarted() {
+    qInfo() << "Woken up by a message";
+    setVisible(true);
+    QApplication::setActiveWindow(this);
+    show();
+    raise();
+    activateWindow();
+}    

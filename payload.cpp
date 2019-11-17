@@ -5,14 +5,14 @@ QString Payload::endline = "\r\n";
 QString Payload::start_delim = "--" + Payload::boundary + Payload::endline;
 QString Payload::stop_delim = Payload::endline + "--" + Payload::boundary + "--" + Payload::endline;
 
-Payload::Payload(QFile * file, QScriptValue & script_value) : upload_file(file), upload_file_info(QFileInfo(*file))
+Payload::Payload(QFile * file, QJsonDocument & json_document) : upload_file(file), upload_file_info(QFileInfo(*file))
 {
     position = 0;
     const QString file_str = start_delim + cont_disp_str + "name=" + "\"file\"" + "; filename=" + "\"" +
                              upload_file_info.fileName() + "\""
                              + endline + "Content-Transfer-Encoding: binary" + endline + endline;
 
-    addFormParam("authenticity_token", script_value.property("authenticity_token").toString().toLatin1());
+    addFormParam("authenticity_token", json_document["authtnticity_token"].toString().toLatin1());
     payload_start.append(file_str.toUtf8());
     open(QIODevice::ReadOnly);
 }

@@ -1,43 +1,42 @@
-#include <QtWidgets>
-#include <QtPlugin>
+#ifdef WIN32
+#include <windows.h>
+#endif
 
+#include <QApplication>
 #include "window.h"
-#include "listener.h"
 #include <QString>
+#include <QWindow>
 #include "upload_list.h"
 
 int main(int argc, char *argv[])
 {
     //AllocConsole();
-    QApplication app(argc, argv);
-    QCoreApplication::setOrganizationName("rghost");
+    SingleApplication app(argc, argv, true);
+
+    QCoreApplication::setOrganizationName("RGhost");
     QCoreApplication::setOrganizationDomain("rghost.net");
-    QCoreApplication::setApplicationName("uploader");
-    QCoreApplication::setApplicationVersion("1.3");
+    QCoreApplication::setApplicationName("RGhost Uploader");
+    QCoreApplication::setApplicationVersion(VERSION);
 
-    for(int i = 1; i < app.arguments().size(); ++i)
-        UploadList::add(new Uploading(app.arguments().at(i)));
-
-    if (Listener::instance().create()){
+    if( app.isSecondary() ) {
+        qInfo() << "Already started, waking up the primary process";
+        #ifdef WIN32
+        AllowSetForegroundWindow(DWORD(app.primaryPid()));
+        #endif
+        app.sendMessage("\n"); // wake up even if no args given
+        for(int i = 1; i < app.arguments().size(); ++i)
+          app.sendMessage((app.arguments().at(i) + "\n").toUtf8());
+        return 0;
+    } else {
         Q_INIT_RESOURCE(systray);
         Window::instance().show();
-        return app.exec();
+        QObject::connect(
+            &app,
+            &SingleApplication::receivedMessage,
+            &Window::instance(),
+            &Window::receivedMessage
+        );
     }
-    else{
-        #ifdef WIN32
-        DWORD message_size, bytes_written;
-        HANDLE hSlot = CreateFileA(UPLOADER_MAILSLOT, GENERIC_WRITE, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-        if (hSlot == INVALID_HANDLE_VALUE)
-            return 0;
-
-        for(int i = 0; i < UploadList::size(); ++i) {
-            message_size = (DWORD) (lstrlen((WCHAR*)UploadList::at(i)->path().utf16())+1)*sizeof(TCHAR);
-            if (! WriteFile(hSlot, (ushort *)UploadList::at(i)->path().utf16(), message_size, &bytes_written, NULL)) {
-                return 0;
-            }
-        }
-        CloseHandle(hSlot);
-        #endif
-        return 0;
-    }
+    
+    return app.exec();
 }

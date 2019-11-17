@@ -2,10 +2,8 @@
 #include "ui_tabwidget.h"
 #include "upload_list.h"
 #include "uploading.h"
-#include "listener.h"
 #include "window.h"
 #include <QDesktopServices>
-//#include "conio.h"
 
 
 TabWidget::TabWidget(QWidget *parent) :
@@ -13,6 +11,12 @@ TabWidget::TabWidget(QWidget *parent) :
     m_ui(new Ui::TabWidget)
 {
     m_ui->setupUi(this);
+    m_ui->label_version->setText(VERSION);
+
+    if (isApiKeyEntered())
+        setCurrentWidget(m_ui->tab_files);
+    else
+        setCurrentWidget(m_ui->tab_settings);
     connect(m_ui->pushButton_upload, SIGNAL(clicked()), this, SLOT(uploadDialog()));
     connect(m_ui->pushButton_clear, SIGNAL(clicked()), this, SLOT(clearTableView()));
     connect(m_ui->pushButton_copy, SIGNAL(clicked()), this, SLOT(copyTableView()));
@@ -23,9 +27,7 @@ TabWidget::TabWidget(QWidget *parent) :
     connect(m_ui->pushButton_control, SIGNAL(clicked()), this, SLOT(controlUpload()));
     suffixes << "B" << "KB" << "MB" << "GB" << "TB" << "PB";
     loadOptions();
-    connect(&Listener::instance(), SIGNAL(UploadingsReceived()), this, SLOT(newUpload()));
     connect(&Window::instance(), SIGNAL(UploadingsReceived()), this, SLOT(newUpload()));
-    connect(m_ui->checkBox_api, SIGNAL(stateChanged(int)), this, SLOT(toggleApiKey(int)));
     connect(m_ui->lineEdit_api,SIGNAL(editingFinished()), this, SLOT(updateApiKey()));
     connect(m_ui->checkBox_systemtray, SIGNAL(stateChanged(int)), this, SLOT(toggleSystemTray(int)));
     newUpload();
@@ -117,16 +119,14 @@ void TabWidget::newUpload(){
 }
 
 void TabWidget::prepareUpload() {
-    if (UploadList::current_uploading != NULL)
-        return;
-
     if (UploadList::new_current_uploading() == NULL)
         return;
 
-    if (!QFile::exists(UploadList::current_uploading->at(0))) {
+    if (!QFile::exists(UploadList::current_uploading->path())) {
         UploadList::current_uploading->descr(tr("Error: file does not exist"));
         UploadList::current_uploading->state(tr("error"));
         UploadList::current_uploading = NULL;
+        newUpload();
         return;
     }
     upload_file = new QFile(UploadList::current_uploading->path());
@@ -135,6 +135,7 @@ void TabWidget::prepareUpload() {
                 UploadList::current_uploading->path()).arg(upload_file->errorString()));
         UploadList::current_uploading->state(tr("error"));
         UploadList::current_uploading = NULL;
+        newUpload();
         return;
     }
 
@@ -143,17 +144,16 @@ void TabWidget::prepareUpload() {
     UploadList::current_uploading->descr(tr("Uploading..."));
 
     QNetworkRequest request;
-    request.setUrl(QUrl("http://rghost.net/multiple/upload_host"));
+    request.setUrl(QUrl("https://rghost.net/multiple/upload_host"));
     request.setRawHeader("Host", "rghost.net");
     request.setRawHeader("Accept-Language","en");
     request.setRawHeader("User-Agent", USER_AGENT);
-    if (settings.value("api_key_enabled").toBool() && settings.value("api_key").toString().size() > 10)
+    if (isApiKeyEntered())
         request.setRawHeader("X-API-Key", settings.value("api_key").toString().toUtf8());
 
     reply = network_manager.get(request);
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(uploadError(QNetworkReply::NetworkError)));
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(uploadError()));
     connect(reply, SIGNAL(finished()), this, SLOT(jsonRequestFinished()));
-
 }
 
 
@@ -162,27 +162,27 @@ void TabWidget::startUpload() {
     m_ui->label_progress->setText(tr("Uploading..."));
 
     QNetworkRequest request;
-    if (script_value.property("premium").toBoolean() == true)
+    if (json_document["premium"].toBool() == true)
         uri = QString("/premium/files");
     else
         uri = QString("/files");
 
-    request.setUrl(QUrl(QString("http://") + script_value.property("upload_host").toString() + uri));
-    request.setRawHeader("Host", script_value.property("upload_host").toString().toUtf8());
+    request.setUrl(QUrl(QString("https://") + json_document["upload_host"].toString() + uri));
+    request.setRawHeader("Host", json_document["upload_host"].toString().toUtf8());
     request.setRawHeader("Accept-Language","en");
     request.setRawHeader("User-Agent", USER_AGENT);
     request.setRawHeader("Cookie", session.toUtf8());
     request.setRawHeader("Content-type", QString("multipart/form-data; boundary=" + Payload::boundary).toUtf8());
-    if (settings.value("api_key_enabled").toBool() && settings.value("api_key").toString().size() > 10)
+    if (isApiKeyEntered())
         request.setRawHeader("X-API-Key", settings.value("api_key").toString().toUtf8());
 
     request.setAttribute(QNetworkRequest::DoNotBufferUploadDataAttribute, true);
-    payload = new Payload(upload_file, script_value);
+    payload = new Payload(upload_file, json_document);
 
     start_date = last_date = QDateTime::currentDateTime();
     reply = network_manager.post(request, payload);
     connect(reply, SIGNAL(finished()), this, SLOT(uploadRequestFinished()));
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(uploadError(QNetworkReply::NetworkError)));
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(uploadError()));
     connect(reply, SIGNAL(uploadProgress(qint64, qint64) ), this, SLOT(updateDataSendProgress(qint64,qint64)));
 
     //_cprintf("uploading...\n");
@@ -218,7 +218,7 @@ void TabWidget::updateDataSendProgress(qint64 bytesSent, qint64 totalBytes) {
     int min = round(temp / 60);
     int sec = round(temp % 60);
 
-    size_str = tr("%1 / %2 %3  ").arg(size, 0, 'f', 2).arg(max_size, 0, 'f', 2).arg(suffixes[i]);
+    size_str = tr("%1 / %2 %3  ").arg(QString::number(size, 'g', 2)).arg(QString::number(max_size, 'g', 2)).arg(suffixes[i]);
     speed_str = tr("%1 KBps  ").arg(round(average_speed/1024));
     if (hours > 0)
         time_str = tr("%1h %2m").arg(hours).arg(min);
@@ -241,23 +241,18 @@ void TabWidget::uploadRequestFinished() {
     upload_file = NULL;
     payload->deleteLater();
     payload = NULL;
-    updateTableView();
-    if (reply->error() == QNetworkReply::NoError) {
-        reply->deleteLater();
-        newUpload();
-    }
-    else
-        reply->deleteLater();
+    reply->deleteLater();
+    newUpload();
 }
 
 void TabWidget::jsonRequestFinished() {
     qint64 upload_limit;
 
     if (reply->error() == QNetworkReply::NoError) {
-        script_value = script_engine.evaluate("(" + reply->readAll() + ")");
+        json_document = QJsonDocument::fromJson(reply->readAll());
         session = reply->rawHeader("Set-Cookie");
         reply->deleteLater();
-        upload_limit = script_value.property("upload_limit").toInteger();
+        upload_limit = json_document["upload_limit"].toInt();
 
         if ( upload_file->size() > upload_limit*1024*1024) {
             UploadList::current_uploading->descr(tr("Upload size limit (%1 MB)").arg(upload_limit));
@@ -265,7 +260,7 @@ void TabWidget::jsonRequestFinished() {
             UploadList::current_uploading = NULL;
             upload_file->close();
             upload_file = NULL;
-            updateTableView();
+            newUpload();
             return;
         }
         startUpload();
@@ -273,11 +268,12 @@ void TabWidget::jsonRequestFinished() {
     else
         reply->deleteLater();
 }
-void TabWidget::uploadError(QNetworkReply::NetworkError status) {
-    UploadList::current_uploading->descr(tr("Upload failed: %1 (%2).").arg(reply->errorString()).arg(status));
+void TabWidget::uploadError() {
+    json_document = QJsonDocument::fromJson(reply->readAll());
+     UploadList::current_uploading->descr(tr("Upload failed: %1 (%2).").arg(json_document["error"].toString()).arg(reply->errorString()));
     UploadList::current_uploading->state(tr("error"));
     UploadList::current_uploading = NULL;
-    updateTableView();
+    newUpload();
 }
 
 void TabWidget::recordSpeed(qint64 new_bytes_sent) {
@@ -303,23 +299,15 @@ void TabWidget::controlUpload() {
     }
 }
 
-void TabWidget::toggleApiKey(int state) {
-    bool new_state = false;
-    if (state == Qt::Checked)
-        new_state = true;
-    m_ui->lineEdit_api->setEnabled(new_state);
-    settings.setValue("api_key_enabled", new_state);
-}
-
 void TabWidget::updateApiKey() {
     settings.setValue("api_key", m_ui->lineEdit_api->text());
 }
 
+bool TabWidget::isApiKeyEntered(){
+  return settings.value("api_key").toString().size() > 10;
+}
+
 void TabWidget::loadOptions() {
-    if( settings.value("api_key_enabled").toBool()) {
-        m_ui->checkBox_api->setCheckState(Qt::Checked);
-        m_ui->lineEdit_api->setEnabled(true);
-    }
     if( settings.value("system_tray_enabled").toBool()) {
         m_ui->checkBox_systemtray->setCheckState(Qt::Checked);
         toggleSystemTray(Qt::Checked);

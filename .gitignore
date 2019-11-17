@@ -16,3 +16,7 @@ qrc_systray.cpp
 #Xcode
 *.pbxuser
 *.mode1v3
+.*
+*.kdev4
+*_plugin_import.cpp
+rghost_uploader_resource.rc

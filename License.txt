@@ -7,4 +7,4 @@ Permission is granted to anyone to use this software for any purpose, including 
 2. Altered versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any distribution.
 
-For more information go to http://rghost.net/tos
+For more information go to https://rghost.net/tos

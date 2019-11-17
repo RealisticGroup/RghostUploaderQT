@@ -1,13 +1,32 @@
-!define Packhdr upx
-!include Packhdr.nsh
+# !packhdr $%TEMP%\exehead.tmp `upx -9 "$%TEMP%\exehead.tmp"`
+
+!verbose 4
+
+!define APPLICATION_SHORTNAME "RGhost"
+!define APPLICATION_NAME "RGhost Uploader"
+!define APPLICATION_VENDOR "RGhost"
+!define APPLICATION_EXECUTABLE "rghost_uploader.exe"
+
+; Safe to use Win64's exe version since we require both builds for this combined installer.
+!getdllversion "release\${APPLICATION_EXECUTABLE}" expv_
+!define VER_MAJOR "${expv_1}"
+!define VER_MINOR "${expv_2}"
+!define VER_PATCH "${expv_3}"
+!define VER_BUILD "${expv_4}"
+!define VERSION "${expv_1}.${expv_2}.${expv_3}.${expv_4}"
+
+VIProductVersion "${VERSION}"
+VIAddVersionKey "ProductName" "${APPLICATION_NAME}"
+VIAddVersionKey "CompanyName" "${APPLICATION_VENDOR}"
+VIAddVersionKey "FileVersion" "${VERSION}"
 
 ;--------------------------------
 ;Include Modern UI
 
   !include "MUI2.nsh"
   !define MUI_ICON "images/ghost.ico"
-  Name "RGhost uploader"
-  OutFile "RGhostUploader.exe"
+  Name "${APPLICATION_NAME}"
+  OutFile "release/RGhostUploaderInstaller.exe"
 
   InstallDir "$PROGRAMFILES\RGhost"
 
@@ -36,7 +55,7 @@
 
   ;Start Menu Folder Page Configuration
   !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU"
-  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\RGhost"
+  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\${APPLICATION_SHORTNAME}"
   !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
 
   !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
@@ -44,8 +63,8 @@
   !insertmacro MUI_PAGE_INSTFILES
 
   !define MUI_FINISHPAGE_NOAUTOCLOSE
-  !define MUI_FINISHPAGE_RUN "$INSTDIR\rghost_uploader.exe"
-  !define MUI_FINISHPAGE_RUN_TEXT "Start rghost uploader"
+  !define MUI_FINISHPAGE_RUN "$INSTDIR\${APPLICATION_EXECUTABLE}"
+  !define MUI_FINISHPAGE_RUN_TEXT "Start ${APPLICATION_NAME}"
   !define MUI_FINISHPAGE_RUN_FUNCTION "LaunchLink"
   !insertmacro MUI_PAGE_FINISH
 
@@ -63,9 +82,9 @@
 Section "RGhost Uploader" SecUploader
 
   SetOutPath "$INSTDIR"
-  WriteRegStr HKCU "Software\RhHost" "InstallDir" $INSTDIR
+  WriteRegStr HKCU "Software\RGhost" "InstallDir" $INSTDIR
 
-  File "Release\rghost_uploader.exe"
+  File "release\${APPLICATION_EXECUTABLE}"
 
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -73,7 +92,7 @@ Section "RGhost Uploader" SecUploader
 
     ;Create shortcuts
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uploader.lnk" "$INSTDIR\rghost_uploader.exe"
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uploader.lnk" "$INSTDIR\${APPLICATION_EXECUTABLE}"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_END
@@ -81,15 +100,16 @@ SectionEnd
 
 Section "Shell Extension" SecShellEx
 
-  WriteRegStr HKCR "*\shell\RGhost" "" "Upload to RGhost"
-  WriteRegStr HKCR "*\shell\RGhost\command" "" '$INSTDIR\rghost_uploader.exe "%1"'
+  WriteRegStr HKCR "*\shell\RGhost" "" "Upload to ${APPLICATION_SHORTNAME}"
+  WriteRegStr HKCR "*\shell\RGhost" "Icon" "$INSTDIR\${APPLICATION_EXECUTABLE}"
+  WriteRegStr HKCR "*\shell\RGhost\command" "" '$INSTDIR\${APPLICATION_EXECUTABLE} "%1"'
 
 SectionEnd
 
 ;Descriptions
 
   ;Language strings
-  LangString DESC_ShellEx ${LANG_ENGLISH} "Add rghost uploader to the context menu."
+  LangString DESC_ShellEx ${LANG_ENGLISH} "Add ${APPLICATION_NAME} to the context menu."
 
   ;Assign language strings to sections
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
@@ -104,22 +124,22 @@ Section "Uninstall"
   ;ADD YOUR OWN FILES HERE...
 
   Delete "$INSTDIR\Uninstall.exe"
-  Delete "$INSTDIR\rghost_uploader.exe"
+  Delete "$INSTDIR\${APPLICATION_EXECUTABLE}"
 
   RMDir "$INSTDIR"
 
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
 
   Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
-  Delete "$SMPROGRAMS\$StartMenuFolder\Uploader.lnk"
+  Delete "$SMPROGRAMS\$StartMenuFolder\RGhost Uploader.lnk"
   RMDir "$SMPROGRAMS\$StartMenuFolder"
 
-  DeleteRegKey HKCU "Software\RGhost"
-  DeleteRegKey HKCR "*\shell\RGhost"
-  DeleteRegValue HKLM "Software\Microsoft\Windows\CurrentVersion\Run" "RGhost uploader"
+  DeleteRegKey HKCU "Software\${APPLICATION_SHORTNAME}"
+  DeleteRegKey HKCR "*\shell\${APPLICATION_SHORTNAME}"
+  DeleteRegValue HKLM "Software\Microsoft\Windows\CurrentVersion\Run" "${APPLICATION_NAME}"
 
 SectionEnd
 
 Function LaunchLink
-  ExecShell "" "$INSTDIR\rghost_uploader.exe"
+  ExecShell "" "$INSTDIR\${APPLICATION_EXECUTABLE}"
 FunctionEnd

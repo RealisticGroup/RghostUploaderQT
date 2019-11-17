@@ -6,12 +6,12 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QSettings>
-#include <QtScript/QScriptValue>
+#include <QJsonDocument>
 
 class Payload : public QIODevice
 {
 public:
-    Payload(QFile * file, QScriptValue & script_value);
+    Payload(QFile * file, QJsonDocument & json_document);
     ~Payload();
     qint64 size() const;
     qint64 pos() const;

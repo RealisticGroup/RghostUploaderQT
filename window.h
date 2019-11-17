@@ -1,6 +1,7 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#include "singleapplication.h"
 #include <QSystemTrayIcon>
 #include <QDialog>
 #include <QAction>
@@ -21,6 +22,8 @@ public:
     static Window & instance();
     static Window * shared_instance;
     void setVisible(bool visible);
+    void receivedMessage( int instanceId, QByteArray message );
+    void instanceStarted();
 
 signals:
     void UploadingsReceived();

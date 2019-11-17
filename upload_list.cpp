@@ -1,4 +1,5 @@
 #include "upload_list.h"
+#include <QtGlobal>
 Uploading * UploadList::current_uploading;
 QList<Uploading *> UploadList::upload_list;
 QMutex UploadList::mutex;
@@ -45,16 +46,17 @@ void UploadList::clear() {
 }
 
 Uploading * UploadList::new_current_uploading(){
+    Uploading * new_uploading = NULL;
     mutex.lock();
-    current_uploading = NULL;
-    for (int j = 0; j < size(); ++j) {
-        if (upload_list.at(j)->state() == "new") {
-            current_uploading = upload_list.at(j);
-            break;
-        }
-    }
+    if (current_uploading == NULL)
+      for (int j = 0; j < size(); ++j)
+          if (upload_list.at(j)->state() == "new") {
+              new_uploading = upload_list.at(j);
+              current_uploading = new_uploading;
+              break;
+          }
     mutex.unlock();
-    return current_uploading;
+    return new_uploading;
 }
 
 Uploading * UploadList::at(int position){

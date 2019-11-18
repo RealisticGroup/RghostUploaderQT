@@ -24,11 +24,13 @@ int main(int argc, char *argv[])
         AllowSetForegroundWindow(DWORD(app.primaryPid()));
         #endif
         app.sendMessage("\n"); // wake up even if no args given
-        for(int i = 1; i < app.arguments().size(); ++i)
-          app.sendMessage((app.arguments().at(i) + "\n").toUtf8());
+
+        for(int i = 1; i < app.arguments().size(); ++i) {
+          app.sendMessage(app.arguments().at(i).toUtf8());
+          app.sendMessage("\n");
+        }
         return 0;
     } else {
-        Q_INIT_RESOURCE(systray);
         Window::instance().show();
         QObject::connect(
             &app,
@@ -37,6 +39,6 @@ int main(int argc, char *argv[])
             &Window::receivedMessage
         );
     }
-    
+
     return app.exec();
 }

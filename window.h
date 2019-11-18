@@ -1,3 +1,4 @@
+#pragma once
 #ifndef WINDOW_H
 #define WINDOW_H
 
@@ -21,6 +22,9 @@ class Window : public QDialog
 public:
     static Window & instance();
     static Window * shared_instance;
+    static bool isApiKeyEntered();
+
+    QSettings settings;
     void setVisible(bool visible);
     void receivedMessage( int instanceId, QByteArray message );
     void instanceStarted();

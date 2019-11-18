@@ -92,7 +92,7 @@ Section "RGhost Uploader" SecUploader
 
     ;Create shortcuts
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uploader.lnk" "$INSTDIR\${APPLICATION_EXECUTABLE}"
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${APPLICATION_NAME}.lnk" "$INSTDIR\${APPLICATION_EXECUTABLE}"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_END
@@ -131,7 +131,7 @@ Section "Uninstall"
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
 
   Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
-  Delete "$SMPROGRAMS\$StartMenuFolder\RGhost Uploader.lnk"
+  Delete "$SMPROGRAMS\$StartMenuFolder\${APPLICATION_NAME}.lnk"
   RMDir "$SMPROGRAMS\$StartMenuFolder"
 
   DeleteRegKey HKCU "Software\${APPLICATION_SHORTNAME}"

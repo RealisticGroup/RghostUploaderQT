@@ -1,24 +1,41 @@
 #ifndef UPLOAD_LIST_H
 #define UPLOAD_LIST_H
+#include <QObject>
 #include <QList>
 #include <QString>
 #include <QMutex>
 #include "uploading.h"
 
-class UploadList
+class UploadList : public QObject
 {
+Q_OBJECT
+
 public:
-    static void add(Uploading * uploading);
-    static void add(const QString & path);
-    static void clear();
-    static Uploading * new_current_uploading();
-    static int size();
-    static Uploading * current_uploading;
-    static Uploading * at(int);
-    static QList<Uploading *> upload_list;
-    static QMutex mutex;
-private:
     UploadList();
+    static UploadList * instance();
+    static UploadList * shared_instance;
+
+    QMutex mutex;
+    QList<Uploading *> upload_list; //  = QList<Uploading*>();
+
+    Uploading * current_uploading;
+
+    void add(Uploading * uploading);
+    void add(const QString & path);
+    void clear();
+    Uploading * new_current_uploading();
+    Uploading * at(int);
+    int size();
+    void fail(QString message);
+    void fail_all_pending(QString message);
+    void stop_current_uploading();
+    void change_current_state(QString state, QString description);
+
+signals:
+    void changedCurrent();
+    void changedList();
+
+private:
     ~UploadList();
 };
 

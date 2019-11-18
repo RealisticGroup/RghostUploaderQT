@@ -2,12 +2,14 @@ HEADERS += window.h \
     tabwidget.h \
     upload_list.h \
     uploading.h \
+    upload_manager.h \
     payload.h
 
 SOURCES += window.cpp \
     tabwidget.cpp \
     main.cpp \
     upload_list.cpp \
+    upload_manager.cpp \
     uploading.cpp \
     payload.cpp
 

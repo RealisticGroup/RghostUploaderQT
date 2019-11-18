@@ -9,7 +9,7 @@ Window & Window::instance() {
         new Window;
     return *shared_instance;
 }
-Window::Window() {
+Window::Window() : settings() {
     shared_instance = this;
     createActions();
     createTrayIcon();
@@ -18,7 +18,7 @@ Window::Window() {
             this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
-    tabWidget = new TabWidget;
+    tabWidget = new TabWidget();
     mainLayout->addWidget(tabWidget);
     setLayout(mainLayout);
 
@@ -49,7 +49,7 @@ void Window::dragEnterEvent(QDragEnterEvent *event) {
 void Window::dropEvent(QDropEvent *event) {
     if (event->mimeData()->hasUrls() && event->mimeData()->urls().size() > 0) {
         for(int i = 0; i < event->mimeData()->urls().size(); ++i)
-            UploadList::add(event->mimeData()->urls().at(i).toLocalFile());
+            UploadList::instance()->add(event->mimeData()->urls().at(i).toLocalFile());
         UploadingsReceived();
     }
     event->acceptProposedAction();
@@ -97,13 +97,22 @@ void Window::createTrayIcon() {
     setWindowIcon(icon);
 }
 
-
 void Window::receivedMessage(int instanceId, QByteArray message) {
     instanceStarted();
-    QStringList list = QString(message).split(QRegExp("\n"), QString::SkipEmptyParts);
-    for ( const auto& path : list  )
-        UploadList::add(new Uploading(path));
+    tabWidget->debugLog("received message:");
+    tabWidget->debugLog(QString(message));
+    tabWidget->debugLog("adding files:");
+    QStringList list = QString(message).split("\n", QString::SkipEmptyParts);
+
+    for ( const auto& path : list  ) {
+        tabWidget->debugLog(path);
+        UploadList::instance()->add(path);
+    }
     UploadingsReceived();
+}
+
+bool Window::isApiKeyEntered() {
+  return Window::instance().settings.value("api_key").toString().size() > 10;
 }
 
 void Window::instanceStarted() {
@@ -113,4 +122,4 @@ void Window::instanceStarted() {
     show();
     raise();
     activateWindow();
-}    
+}
